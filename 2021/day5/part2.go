@@ -51,8 +51,16 @@ func swap(x int, y int) (int, int) {
 	return temp, y
 }
 
+func abs(x int) int {
+	if x < 0 {
+		return -1 * x
+	}
+	return x
+}
+
 func main() {
-	lines, _ := readLines("./input_back")
+	//lines, _ := readLines("./input_back")
+	lines, _ := readLines("./input")
 	var lineObjs []*Line
 	var diagonals []*Line
 	for i := 0; i < len(lines); i++ {
@@ -66,14 +74,15 @@ func main() {
 		vals = strings.Split(strings.TrimSpace(coords[1]), ",")
 		line.X2, _ = strconv.Atoi(vals[0])
 		line.Y2, _ = strconv.Atoi(vals[1])
-		if line.Y2-line.Y1 == line.X2-line.X1 {
-			fmt.Println(line)
+		dy := line.Y2 - line.Y1
+		dx := line.X2 - line.X1
+		if abs(dy) == abs(dx) {
 			diagonals = append(diagonals, line)
 		} else if line.X1 == line.X2 || line.Y1 == line.Y2 {
 			lineObjs = append(lineObjs, line)
 		}
 	}
-	var grid [10][10]int
+	var grid [1000][1000]int
 	count := 0
 	for i := 0; i < len(lineObjs); i++ {
 		currLine := lineObjs[i]
@@ -86,21 +95,24 @@ func main() {
 
 	for i := 0; i < len(diagonals); i++ {
 		currLine := diagonals[i]
-		fmt.Println(currLine)
-		if currLine.X1 == currLine.Y1 && currLine.X2 == currLine.Y2 {
-			for x := min(currLine.X1, currLine.X2); x <= max(currLine.X1, currLine.X2); x++ {
-				grid[x][x] += 1
-			}
+		deltaX := 1
+		if currLine.X1 > currLine.X2 {
+			deltaX = -1
 		}
+		deltaY := 1
+		if currLine.Y1 > currLine.Y2 {
+			deltaY = -1
+		}
+		X1 := currLine.X1
+		Y1 := currLine.Y1
+		for X1 != currLine.X2 && Y1 != currLine.Y2 {
+			grid[X1][Y1] += 1
+			X1 += deltaX
+			Y1 += deltaY
+
+		}
+		grid[X1][Y1]++
 	}
-	/*
-		for i := 0; i < len(diagonals); i++ {
-			currLine := diagonals[i]
-			for x := max(currLine.X1, currLine.X2); x >= min(currLine.X1, currLine.X2); x-- {
-				grid[x][x] += 1
-			}
-		}
-	*/
 	for i := 0; i < len(grid); i++ {
 		for j := 0; j < len(grid[0]); j++ {
 			if grid[i][j] > 1 {
@@ -108,6 +120,5 @@ func main() {
 			}
 		}
 	}
-	//fmt.Println(grid)
 	fmt.Println(count)
 }
