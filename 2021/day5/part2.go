@@ -15,8 +15,7 @@ type Line struct {
 	Y2 int
 }
 
-// readLines reads a whole file into memory
-// and returns a slice of its lines.
+// readLines reads a whole file into memory and returns a slice of its lines.
 func readLines(path string) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -45,11 +44,6 @@ func max(x int, y int) int {
 	}
 	return y
 }
-func swap(x int, y int) (int, int) {
-	temp := x
-	x = y
-	return temp, y
-}
 
 func abs(x int) int {
 	if x < 0 {
@@ -61,8 +55,8 @@ func abs(x int) int {
 func main() {
 	//lines, _ := readLines("./input_back")
 	lines, _ := readLines("./input")
-	var lineObjs []*Line
 	var diagonals []*Line
+	var grid [1000][1000]int
 	for i := 0; i < len(lines); i++ {
 		coords := strings.Split(lines[i], "->")
 		line := new(Line)
@@ -74,22 +68,24 @@ func main() {
 		vals = strings.Split(strings.TrimSpace(coords[1]), ",")
 		line.X2, _ = strconv.Atoi(vals[0])
 		line.Y2, _ = strconv.Atoi(vals[1])
+
+		// .. horizontal lines
+		if line.Y1 == line.Y2 {
+			for x := min(line.X1, line.X2); x <= max(line.X1, line.X2); x++ {
+				grid[line.Y1][x]++
+			}
+		}
+
+		// .. vertical lines
+		if line.X1 == line.X2 {
+			for y := min(line.Y1, line.Y2); y <= max(line.Y1, line.Y2); y++ {
+				grid[y][line.X1]++
+			}
+		}
 		dy := line.Y2 - line.Y1
 		dx := line.X2 - line.X1
 		if abs(dy) == abs(dx) {
 			diagonals = append(diagonals, line)
-		} else if line.X1 == line.X2 || line.Y1 == line.Y2 {
-			lineObjs = append(lineObjs, line)
-		}
-	}
-	var grid [1000][1000]int
-	count := 0
-	for i := 0; i < len(lineObjs); i++ {
-		currLine := lineObjs[i]
-		for y := min(currLine.Y1, currLine.Y2); y <= max(currLine.Y1, currLine.Y2); y++ {
-			for x := min(currLine.X1, currLine.X2); x <= max(currLine.X1, currLine.X2); x++ {
-				grid[y][x]++
-			}
 		}
 	}
 
@@ -105,17 +101,18 @@ func main() {
 		}
 		X1 := currLine.X1
 		Y1 := currLine.Y1
-		for X1 != currLine.X2 && Y1 != currLine.Y2 {
-			grid[X1][Y1] += 1
+		for X1 != currLine.X2 {
+			grid[X1][Y1]++
 			X1 += deltaX
 			Y1 += deltaY
 
 		}
 		grid[X1][Y1]++
 	}
+	count := 0
 	for i := 0; i < len(grid); i++ {
 		for j := 0; j < len(grid[0]); j++ {
-			if grid[i][j] > 1 {
+			if grid[i][j] >= 2 {
 				count++
 			}
 		}
