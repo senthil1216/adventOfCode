@@ -55,59 +55,48 @@ func abs(x int) int {
 func main() {
 	//lines, _ := readLines("./input_back")
 	lines, _ := readLines("./input")
-	var diagonals []*Line
 	var grid [1000][1000]int
 	for i := 0; i < len(lines); i++ {
 		coords := strings.Split(lines[i], "->")
-		line := new(Line)
-
 		vals := strings.Split(strings.TrimSpace(coords[0]), ",")
-		line.X1, _ = strconv.Atoi(vals[0])
-		line.Y1, _ = strconv.Atoi(vals[1])
+		x1, _ := strconv.Atoi(vals[0])
+		y1, _ := strconv.Atoi(vals[1])
 
 		vals = strings.Split(strings.TrimSpace(coords[1]), ",")
-		line.X2, _ = strconv.Atoi(vals[0])
-		line.Y2, _ = strconv.Atoi(vals[1])
+		x2, _ := strconv.Atoi(vals[0])
+		y2, _ := strconv.Atoi(vals[1])
 
 		// .. horizontal lines
-		if line.Y1 == line.Y2 {
-			for x := min(line.X1, line.X2); x <= max(line.X1, line.X2); x++ {
-				grid[line.Y1][x]++
+		if y1 == y2 {
+			for x := min(x1, x2); x <= max(x1, x2); x++ {
+				grid[y1][x] = grid[y1][x] + 1
 			}
 		}
 
 		// .. vertical lines
-		if line.X1 == line.X2 {
-			for y := min(line.Y1, line.Y2); y <= max(line.Y1, line.Y2); y++ {
-				grid[y][line.X1]++
+		if x1 == x2 {
+			for y := min(y1, y2); y <= max(y1, y2); y++ {
+				grid[y][x1] = grid[y][x1] + 1
 			}
 		}
-		dy := line.Y2 - line.Y1
-		dx := line.X2 - line.X1
-		if abs(dy) == abs(dx) {
-			diagonals = append(diagonals, line)
-		}
-	}
 
-	for i := 0; i < len(diagonals); i++ {
-		currLine := diagonals[i]
-		deltaX := 1
-		if currLine.X1 > currLine.X2 {
-			deltaX = -1
+		// .. diagonals
+		if !(x1 == x2 || y1 == y2) {
+			deltaX := 1
+			if x1 > x2 {
+				deltaX = -1
+			}
+			deltaY := 1
+			if y1 > y2 {
+				deltaY = -1
+			}
+			grid[y1][x1]++
+			for x1 != x2 {
+				x1 += deltaX
+				y1 += deltaY
+				grid[y1][x1] = grid[y1][x1] + 1
+			}
 		}
-		deltaY := 1
-		if currLine.Y1 > currLine.Y2 {
-			deltaY = -1
-		}
-		X1 := currLine.X1
-		Y1 := currLine.Y1
-		for X1 != currLine.X2 {
-			grid[X1][Y1]++
-			X1 += deltaX
-			Y1 += deltaY
-
-		}
-		grid[X1][Y1]++
 	}
 	count := 0
 	for i := 0; i < len(grid); i++ {
