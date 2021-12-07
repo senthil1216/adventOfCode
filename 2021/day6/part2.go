@@ -9,23 +9,36 @@ import (
 )
 
 func main() {
-	//file, _ := os.Open("./input_back")
+	// file, _ := os.Open("./input_back")
 	file, _ := os.Open("./input")
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
-	var nums []int
-	var m = make(map[int]int)
-	for scanner.Scan() {
-		line := scanner.Text()
-		lines := strings.Split(line, ",")
-		for _, l := range lines {
-			num, _ := strconv.Atoi(l)
-			nums = append(nums, num)
-		}
+	scanner.Scan()
+	lines := strings.Split(scanner.Text(), ",")
+	var lifetimes [9]int
+	for _, l := range lines {
+		num, _ := strconv.Atoi(l)
+		lifetimes[num]++
 	}
-	m[1000] = 100
-	//var i int
+	var i int
+	for i < 256 {
+		newFishes := lifetimes[0]
+		for idx := 0; idx < len(lifetimes)-1; idx++ {
+			lifetimes[idx] = lifetimes[idx+1]
+		}
+		lifetimes[6] += newFishes
+		lifetimes[8] = newFishes
+		i++
+	}
+	count := 0
+	for j := 0; j < len(lifetimes); j++ {
+		count += lifetimes[j]
+	}
+	fmt.Println(count)
+	// var i int
 	// for i < 80 {
+	// 	i++
+	// }
 	// 	var count int
 	// 	for idx, num := range nums {
 	// 		if num == 0 {
@@ -40,5 +53,4 @@ func main() {
 	// 	}
 	// 	i++
 	// }
-	fmt.Println(len(nums))
 }
