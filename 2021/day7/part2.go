@@ -37,7 +37,6 @@ func main() {
 		minPos = math.Min(minPos, float64(pos))
 		maxPos = math.Max(maxPos, float64(pos))
 	}
-	fmt.Println(minPos, maxPos)
 	minCost := math.MaxFloat64
 	for pointer := minPos; pointer < maxPos; pointer++ {
 		var cost int
