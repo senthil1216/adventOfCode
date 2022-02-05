@@ -55,7 +55,7 @@ func parseCoords(currLine string) Coords {
 
 func findMaxCoords(gridMap map[Coords]bool) (int, int) {
 	var maxRowIdx, maxColIdx int
-	for key, _ := range gridMap {
+	for key := range gridMap {
 		maxRowIdx = max(key.RowIdx, maxRowIdx)
 		maxColIdx = max(key.ColIdx, maxColIdx)
 	}
@@ -68,7 +68,7 @@ func doFold(gridMap map[Coords]bool, foldSize int, folds []FoldMethods) map[Coor
 		tempGrid = make(map[Coords]bool)
 		currFold := folds[i]
 		if currFold.Dir == "y" { // Fold alongside the row
-			for coord, _ := range gridMap {
+			for coord := range gridMap {
 				var newCoord Coords
 				newCoord.ColIdx = coord.ColIdx
 				if coord.RowIdx < currFold.Num {
@@ -79,7 +79,7 @@ func doFold(gridMap map[Coords]bool, foldSize int, folds []FoldMethods) map[Coor
 				tempGrid[newCoord] = true
 			}
 		} else if currFold.Dir == "x" { // .. Fold alongside the column
-			for coord, _ := range gridMap {
+			for coord := range gridMap {
 				var newCoord Coords
 				newCoord.RowIdx = coord.RowIdx
 				if coord.ColIdx < currFold.Num {
