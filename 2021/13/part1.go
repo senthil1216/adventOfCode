@@ -35,7 +35,7 @@ func abs(a int) int {
 	return a
 }
 
-func createFoldMethods(line string) FoldMethods {
+func parseFoldMethods(line string) FoldMethods {
 	fold := strings.Split(line, " ")
 	dir := fold[len(fold)-1]
 	vals := strings.Split(dir, "=")
@@ -45,7 +45,7 @@ func createFoldMethods(line string) FoldMethods {
 	return f
 }
 
-func createCoords(currLine string) Coords {
+func parseCoords(currLine string) Coords {
 	var coord Coords
 	line := strings.Split(currLine, ",")
 	coord.ColIdx, _ = strconv.Atoi(line[0])
@@ -141,10 +141,10 @@ func main() {
 			continue
 		}
 		if !foldStarted {
-			coord := createCoords(curr)
+			coord := parseCoords(curr)
 			gridMap[coord] = true
 		} else {
-			fold := createFoldMethods(curr)
+			fold := parseFoldMethods(curr)
 			folds = append(folds, fold)
 		}
 	}
