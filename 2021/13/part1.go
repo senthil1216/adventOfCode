@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"runtime"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -45,6 +44,83 @@ func createFoldMethods(line string) FoldMethods {
 	f.Num, _ = strconv.Atoi(vals[1])
 	return f
 }
+
+func createCoords(currLine string) Coords {
+	var coord Coords
+	line := strings.Split(currLine, ",")
+	coord.ColIdx, _ = strconv.Atoi(line[0])
+	coord.RowIdx, _ = strconv.Atoi(line[1])
+	return coord
+}
+
+func findMaxCoords(gridMap map[Coords]bool) (int, int) {
+	var maxRowIdx, maxColIdx int
+	for key, _ := range gridMap {
+		maxRowIdx = max(key.RowIdx, maxRowIdx)
+		maxColIdx = max(key.ColIdx, maxColIdx)
+	}
+	return maxRowIdx, maxColIdx
+}
+
+func doFold(gridMap map[Coords]bool, foldSize int, folds []FoldMethods) map[Coords]bool {
+	var tempGrid map[Coords]bool
+	for i := 0; i < foldSize; i++ {
+		tempGrid = make(map[Coords]bool)
+		currFold := folds[i]
+		if currFold.Dir == "y" { // Fold alongside the row
+			for coord, _ := range gridMap {
+				var newCoord Coords
+				newCoord.ColIdx = coord.ColIdx
+				if coord.RowIdx < currFold.Num {
+					newCoord.RowIdx = coord.RowIdx
+				} else {
+					newCoord.RowIdx = 2*currFold.Num - coord.RowIdx
+				}
+				tempGrid[newCoord] = true
+			}
+		} else if currFold.Dir == "x" { // .. Fold alongside the column
+			for coord, _ := range gridMap {
+				var newCoord Coords
+				newCoord.RowIdx = coord.RowIdx
+				if coord.ColIdx < currFold.Num {
+					newCoord.ColIdx = coord.ColIdx
+				} else {
+					newCoord.ColIdx = 2*currFold.Num - coord.ColIdx
+				}
+				tempGrid[newCoord] = true
+			}
+		}
+		gridMap = tempGrid
+	}
+	return gridMap
+}
+
+func solvePart1(gridMap map[Coords]bool, foldMethods []FoldMethods) {
+	gridMap = doFold(gridMap, 1, foldMethods)
+	fmt.Printf("Part 1: \n%v\n", len(gridMap))
+}
+
+func solvePart2(gridMap map[Coords]bool, foldMethods []FoldMethods) {
+	gridMap = doFold(gridMap, len(foldMethods), foldMethods)
+	maxRowIdx, maxColIdx := findMaxCoords(gridMap)
+	var out string
+	for r := 0; r <= maxRowIdx; r++ {
+		for c := 0; c <= maxColIdx; c++ {
+			findCoords := Coords{
+				RowIdx: r,
+				ColIdx: c,
+			}
+			if gridMap[findCoords] {
+				out += "#"
+			} else {
+				out += "."
+			}
+		}
+		out += "\n"
+	}
+	fmt.Printf("Part 2: \n%v\n", out)
+}
+
 func main() {
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
@@ -52,13 +128,12 @@ func main() {
 	}
 	dirName := path.Dir(filename)
 	file, _ := os.Open(dirName + "/input")
-	//file, _ := os.Open(dirName + "/input_back")
+	// file, _ := os.Open(dirName + "/input_back")
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	var foldStarted bool
 	var folds []FoldMethods
-	var coords []Coords
-	var maxColIdx, maxRowIdx int
+	gridMap := make(map[Coords]bool)
 	for scanner.Scan() {
 		curr := scanner.Text()
 		if len(strings.TrimSpace(curr)) == 0 {
@@ -66,64 +141,13 @@ func main() {
 			continue
 		}
 		if !foldStarted {
-			var coord Coords
-			line := strings.Split(curr, ",")
-			coord.ColIdx, _ = strconv.Atoi(line[0])
-			coord.RowIdx, _ = strconv.Atoi(line[1])
-			maxColIdx = max(maxColIdx, coord.ColIdx)
-			maxRowIdx = max(maxRowIdx, coord.RowIdx)
-			coords = append(coords, coord)
+			coord := createCoords(curr)
+			gridMap[coord] = true
 		} else {
 			fold := createFoldMethods(curr)
 			folds = append(folds, fold)
 		}
 	}
-	var newCoords []Coords
-	for i := 0; i < 1; i++ {
-		currFold := folds[i]
-		if currFold.Dir == "y" {
-			diff := maxRowIdx - currFold.Num
-			for _, coord := range coords {
-				var newCoord Coords
-				newCoord.ColIdx = coord.ColIdx
-				if coord.RowIdx < currFold.Num {
-					newCoord.RowIdx = coord.RowIdx
-				} else {
-					newCoord.RowIdx = abs(coord.RowIdx - (diff * 2))
-				}
-				newCoords = append(newCoords, newCoord)
-			}
-		} else {
-			diff := maxColIdx - currFold.Num
-			for _, coord := range coords {
-				var newCoord Coords
-				newCoord.RowIdx = coord.RowIdx
-				if coord.ColIdx < currFold.Num {
-					newCoord.ColIdx = coord.ColIdx
-				} else {
-					newCoord.ColIdx = abs(coord.ColIdx - (diff * 2))
-				}
-				newCoords = append(newCoords, newCoord)
-			}
-		}
-	}
-	sort.SliceStable(newCoords, func(i, j int) bool {
-		if newCoords[i].RowIdx < newCoords[j].RowIdx {
-			return true
-		} else if newCoords[i].RowIdx == newCoords[j].RowIdx {
-			return newCoords[i].ColIdx <= newCoords[j].ColIdx
-		}
-		return false
-	})
-	var cnt int = 1
-	prev := newCoords[0]
-	for i := 1; i < len(newCoords); i++ {
-		curr := newCoords[i]
-		if curr.ColIdx != prev.ColIdx || curr.RowIdx != prev.RowIdx {
-			cnt++
-		}
-		prev = curr
-	}
-	fmt.Println(cnt)
-	fmt.Println(maxRowIdx, maxColIdx)
+	solvePart1(gridMap, folds)
+	solvePart2(gridMap, folds)
 }
